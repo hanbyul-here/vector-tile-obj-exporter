@@ -246,7 +246,8 @@ function d3threeD(exports) {
                     x = nx;
                     y = ny;
                     break;
-
+                case 'a':
+                    break;
                 case ' ':
                     // if it's an empty space, just skip it, and see if we can find a real command
                     break;

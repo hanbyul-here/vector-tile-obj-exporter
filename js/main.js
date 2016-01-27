@@ -4,7 +4,6 @@
 function exportToObj () {
 	var exporter = new THREE.OBJExporter ();
 	var result = exporter.parse (scene);
-	console.log(result);
 	return result;
 	//floatingDiv.style.display = 'block';
 	//floatingDiv.innerHTML = result.split ('\n').join ('<br />');
@@ -42,11 +41,12 @@ var addGeoObject = function( group, svgObject ) {
 			});
 			mesh = new THREE.Mesh(shape3d, material);
 
-			mesh.translateZ( - amount - 1);
-			mesh.translateX( theCenter.x*0.5);
-			mesh.translateY( -theCenter.y*0.5);
-			mesh.rotation.x = Math.PI*3/2;
-			mesh.rotation.z = Math.PI/2;
+			//mesh.translateZ( - amount - 1);
+			//mesh.translateX( theCenter.x*0.5);
+			//mesh.translateY( -theCenter.y*0.5);
+			mesh.rotation.x = -Math.PI*1/2;
+			//mesh.rotation.x = Math.PI*1/2;
+			//mesh.rotation.z = Math.PI/2;
 			group.add(mesh);
 		}
 	}
@@ -57,14 +57,15 @@ var init3d = function(){
 	/// Global : renderer
 	renderer = new THREE.WebGLRenderer( { antialias: true } );
 	renderer.setClearColor( 0xb0b0b0 );
-	renderer.setSize( window.innerWidth, window.innerHeight );
+	renderer.setSize( 800, 500 );
 
 	/// Global : scene
 	scene = new THREE.Scene();
 
 	/// Global : camera
-	camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
-	camera.position.set( 0, -100, 300 );
+	camera = new THREE.PerspectiveCamera( 20, window.innerWidth / window.innerHeight, 1, 1000000 );
+	camera.position.set(2000, 1000, 1300 );
+	camera.lookAt(new THREE.Vector3(0,0,0))
 
 
 	/// Global : group
@@ -114,13 +115,16 @@ var init3d = function(){
 
 	// GROUND
 
-	var groundGeo = new THREE.PlaneBufferGeometry( 10000, 10000 );
+	var groundGeo = new THREE.PlaneBufferGeometry( 1000, 1000 );
 	var groundMat = new THREE.MeshPhongMaterial( { ambient: 0xffffff, color: 0xffffff, specular: 0x050505 } );
 	groundMat.color.setHSL( 0.095, 0.0, 0.75 );
 
 	var ground = new THREE.Mesh( groundGeo, groundMat );
+		ground.position.x = 500;
+
 	ground.rotation.x = -Math.PI/2;
-	ground.position.y = -350;
+	ground.position.y = 0;
+
 	group.add( ground );
 
 	var buildings = [];
@@ -128,27 +132,71 @@ var init3d = function(){
 
 	//this is hard-coded. need better projection strategy.
 
-	var width = 1024,
-    height = 1160;
+	var width = 800,
+    height = 500;
 
-	var projection = d3.geo.albersUsa()
-                       .translate([-width*2869.5, height*591.3])
-                       .scale([10000000]);
+	// var projection = d3.geo.albersUsa()
+ //                       .translate([-width*2869.5, height*591.3])
+ //                       .scale([10000000]);
+
+
+var projection = d3.geo.mercator()
+    .center([-74.0059700, 40.7142700])
+//    .translate([width/2, height/2])
+    .scale([6000000])
+    .precision(.0);
+
 
 	var path = d3.geo.path().projection(projection);
 
 	// this is the part converting d3 path to three shape
 
-	d3.json("total_.json",function(json){
+  var requestLon = long2tile(-74.0059700,  16);
+  var requestLat = lat2tile(40.7142700 , 16);
+  var key = "vector-tiles-xaDJOzg";
+  //console.log(requestLon);
+  //console.log(requestLon);
+
+  var baseurl = "http://vector.mapzen.com/osm/all/16/"+requestLon + "/" + requestLat + ".json?api_key="+key;
+
+	d3.json(baseurl, function(json) {
+	  for(i = 0; i < json.buildings.features.length; i++){
+	    var geoFeature = json.buildings.features[i];
+	    var properties = geoFeature.properties;
+	    var feature = path(geoFeature);
+	    if(feature.indexOf('a') > 0) console.log('wooh there is dangerous command here');
+	    else {
+	    	var mesh = transformSVGPathExposed(feature);
+				buildings.push(mesh);
+				heights.push(geoFeature.properties["height"]);
+	    }
+	  }
+
+	  	var obj = {};
+	  	obj.paths = buildings;
+	  	obj.amounts = heights;
+	  	obj.center = {x:0, y:0};
+
+		addGeoObject( group, obj );
+	});
+
+	//group.translateZ(400);
+	//group.translateX(-100);
+
+	}
+/*
+	d3.json("another.json",function(json){
 
 	  for(i = 0; i < json.features.length; i++){
 	    var geoFeature = json.features[i];
 	    var properties = geoFeature.properties;
 	    var feature = path(geoFeature);
-
-		var mesh = transformSVGPathExposed(feature);
-		buildings.push(mesh);
-		heights.push(json.features[i].properties["height"]);
+	    if(feature.indexOf('a') > 0) console.log('wooh there is dangerous command here');
+	    else {
+	    	var mesh = transformSVGPathExposed(feature);
+				buildings.push(mesh);
+				heights.push(json.features[i].properties["height"]);
+	    }
 
 	  }
 
@@ -167,6 +215,7 @@ var init3d = function(){
 	//addGeoObject( group, obj );
 
 };
+*/
 
 	/// Events from extrude shapes example
 
@@ -241,7 +290,7 @@ var init3d = function(){
 
 		/// compatibility : http://caniuse.com/requestanimationframe
 		requestAnimationFrame( animate );
-
+		controls.update();
 		render();
 
 	};
@@ -269,21 +318,19 @@ var init3d = function(){
 	var container = document.createElement( 'div' );
 	document.body.appendChild( container );
 
-	var info = document.createElement( 'div' );
-	info.style.position = 'absolute';
-	info.style.top = '10px';
-	info.style.width = '100%';
-	info.style.textAlign = 'center';
-	container.appendChild( info );
-
 	init3d();
 
 	container.appendChild( renderer.domElement );
 
+	var controls = new THREE.OrbitControls( camera, renderer.domElement );
+	//controls.addEventListener( 'change', render ); // add this only if there is no animation loop (requestAnimationFrame)
+	controls.enableDamping = true;
+	controls.dampingFactor = 0.25;
+	controls.enableZoom = false;
 
-	document.addEventListener( 'mousedown', onDocumentMouseDown, false );
-	document.addEventListener( 'touchstart', onDocumentTouchStart, false );
-	document.addEventListener( 'touchmove', onDocumentTouchMove, false );
+	//document.addEventListener( 'mousedown', onDocumentMouseDown, false );
+	//document.addEventListener( 'touchstart', onDocumentTouchStart, false );
+	//document.addEventListener( 'touchmove', onDocumentTouchMove, false );
 	window.addEventListener( 'resize', onWindowResize, false );
 
 	animate();
@@ -300,6 +347,11 @@ window.onload = function() {
   var blob = new Blob([buildingObj], {type: 'text'});
   var url = URL.createObjectURL(blob);
   exportA.href = url;});
+}
 
-
+ function long2tile(lon,zoom) {
+  return (Math.floor((lon+180)/360*Math.pow(2,zoom)));
+}
+ function lat2tile(lat,zoom)  {
+  return (Math.floor((1-Math.log(Math.tan(lat*Math.PI/180) + 1/Math.cos(lat*Math.PI/180))/Math.PI)/2 *Math.pow(2,zoom)));
 }
