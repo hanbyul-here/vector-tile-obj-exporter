@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
+<link rel="stylesheet" href="https://mapzen.com/common/styleguide/styles/styleguide.css">
 <style>
   html,body{
     margin: 0;
@@ -17,7 +18,12 @@
 </style>
 <body>
 
-<div class="control"> <a id="exportA">Export</a> <button id="exportBtn"> Get</button></div>
+<div class="control">
+  <label for="lat">Latitude</label><input type="text" id="lat" placeholder="-74.0059700"/>
+  <label for="lon">Longitude</label><input type="text" id="lon" placeholder="40.7142700"/>
+  <button id="exportBtn"> Get</button>
+  <a id="exportA">Export</a>
+</div>
 
 <script src="js/vendor/three.js"></script>
 <script src="http://d3js.org/d3.v3.min.js"></script>
