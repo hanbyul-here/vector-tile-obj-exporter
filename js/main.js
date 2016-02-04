@@ -36,7 +36,16 @@ var addGeoObject = function( bg, svgObject ) {
       buildingGroup.add(mesh);
     }
   }
-};
+
+  var buildingObj = exportToObj()
+
+  var exportA = document.getElementById('exportA');
+  exportA.download = 'tile.obj';
+
+  var blob = new Blob([buildingObj], {type: 'text'});
+  var url = URL.createObjectURL(blob);
+  exportA.href = url;
+}
 
 function init3d() {
 
@@ -98,7 +107,7 @@ function init3d() {
   ground.rotation.x = -Math.PI/2;
   ground.position.y = 0;
 
-  group.add( ground );
+  //group.add( ground );
 }
 
 function fetchData(l, lo) {
@@ -128,21 +137,26 @@ function fetchData(l, lo) {
   var requestLat = long2tile(lat,  16);
   var requestLon = lat2tile(lon , 16);
   var key = "vector-tiles-xaDJOzg";
+  var dataKind = "earth,buildings"
+  var zoomLevel = "16";
 
-  var baseurl = "http://vector.mapzen.com/osm/buildings/16/"+requestLat + "/" + requestLon + ".json?api_key="+key;
+  var baseurl = "http://vector.mapzen.com/osm/"+dataKind+"/"+zoomLevel+"/"+requestLat + "/" + requestLon + ".json?api_key="+key;
 
   d3.json(baseurl, function(json) {
-    console.log(json);
-    for(j = 0; j< json.features.length; j++) {
-      var geoFeature = json.features[j];
-      var properties = geoFeature.properties;
-      var feature = path(geoFeature);
-      // 'a' command is not implemented in d3-three, skipiping for now.
-      if(feature.indexOf('a') > 0) console.log('wooh there is dangerous command here');
-      else {
-        var mesh = transformSVGPathExposed(feature);
-        buildings.push(mesh);
-        heights.push(geoFeature.properties["height"]);
+
+    for(obj in json){
+      for(j = 0; j< json[obj].features.length; j++) {
+        var geoFeature = json[obj].features[j];
+        var properties = geoFeature.properties;
+        var feature = path(geoFeature);
+        // 'a' command is not implemented in d3-three, skipiping for now.
+        if(feature.indexOf('a') > 0) console.log('wooh there is dangerous command here');
+        else {
+          var mesh = transformSVGPathExposed(feature);
+          buildings.push(mesh);
+          var h = geoFeature.properties["height"] || 1;
+          heights.push(h);
+        }
       }
     }
 
@@ -154,16 +168,6 @@ function fetchData(l, lo) {
     scene.add( buildingGroup );
     addGeoObject( buildingGroup, obj );
   });
-
-
-  // var buildingObj = exportToObj()
-
-  // var exportA = document.getElementById('exportA');
-  // exportA.download = 'test.obj';
-
-  // var blob = new Blob([buildingObj], {type: 'text'});
-  // var url = URL.createObjectURL(blob);
-  // exportA.href = url;
 }
 
 
