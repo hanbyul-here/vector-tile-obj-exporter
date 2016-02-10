@@ -45,6 +45,8 @@ var addGeoObject = function( bg, svgObject ) {
   var blob = new Blob([buildingObj], {type: 'text'});
   var url = URL.createObjectURL(blob);
   exportA.href = url;
+
+  document.getElementById('loading-bar').style.display = "none";
 }
 
 function init3d() {
@@ -111,12 +113,9 @@ function init3d() {
 }
 
 function fetchData(l, lo) {
+  document.getElementById('loading-bar').style.display = "block";
   var buildings = [];
   var heights = [];
-
-  console.log(l);
-  console.log(lo);
-
 
   scene.remove(buildingGroup);
 
@@ -137,7 +136,7 @@ function fetchData(l, lo) {
   var requestLat = long2tile(lat,  16);
   var requestLon = lat2tile(lon , 16);
   var key = "vector-tiles-xaDJOzg";
-  var dataKind = "earth,buildings"
+  var dataKind = "earth,water,buildings"
   var zoomLevel = "16";
 
   var baseurl = "http://vector.mapzen.com/osm/"+dataKind+"/"+zoomLevel+"/"+requestLat + "/" + requestLon + ".json?api_key="+key;
