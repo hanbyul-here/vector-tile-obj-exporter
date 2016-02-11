@@ -50,6 +50,12 @@
     top: calc(50% - 7px);
     left: calc(50% - 18px);
 }
+
+a.disabled {
+  color: #eee;
+  pointer-event: none;
+}
+
 //loading spinner animation
 @keyframes spinning {
   0% { transform: rotate(0deg); }
