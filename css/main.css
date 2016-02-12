@@ -9,6 +9,7 @@ html,body{
   position: fixed;
   top: 0;
   left: 0;
+  height: 100%;
   padding: 20px;
   background: rgba(255,255,255,0.7);
 }
@@ -23,7 +24,6 @@ html,body{
   background-color: rgba(255,255,255,0.3);
   z-index: 30;
   display: none;
-
 }
 
 .loading-bar::before {
@@ -52,11 +52,38 @@ html,body{
   left: calc(50% - 18px);
 }
 
+.downloadLink {
+  margin:20px 0;
+}
 a.disabled {
   color: #eee;
   pointer-event: none;
 }
 
+.direction-control {
+  position: relative;
+  width: 100%;
+  height: calc(42px*3 + 20px);
+}
+
+button[id^="go"] {
+  position: absolute;
+  width: 42px;
+  height: 42px;
+}
+
+#go-up {
+  top: 10px; left: calc(26px + 42px);
+}
+#go-left {
+  top: calc(10px + 41px); left: 27px;
+}
+#go-right {
+  top: calc(10px + 41px); left: calc(25px + 42px*2);
+}
+#go-down {
+  top: calc(10px + 41px*2); left: calc(26px + 42px);
+}
 
 //loading spinner animation
 @keyframes spinning {

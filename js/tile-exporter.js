@@ -3,6 +3,8 @@ var TileExporter = (function() {
   var renderer;
   var scene, camera, controls, buildingGroup, exporter;
 
+  var tileLon, tileLat;
+
   var config = {
     baseURL: "http://vector.mapzen.com/osm",
     dataKind: "earth,water,buildings",
@@ -47,7 +49,6 @@ var TileExporter = (function() {
 
     //attach renderer to DOM
     document.body.appendChild( renderer.domElement );
-
     //initiating animate of rendere at the same time
     animate();
   }
@@ -72,19 +73,87 @@ var TileExporter = (function() {
     exportBtn.addEventListener( 'click', function() {
       var inputLon = document.getElementById('lon').value;
       var inputLat = document.getElementById('lat').value;
-      fetchTheTile(inputLon, inputLat);
+      fetchTheTile(buildQueryURL(inputLon, inputLat));
+    });
+
+    var upBtn = document.getElementById('go-up');
+    var downBtn = document.getElementById('go-down');
+    var leftBtn = document.getElementById('go-left');
+    var rightBtn = document.getElementById('go-right');
+
+    upBtn.addEventListener('click', function() {
+      navigateTile('ver',-1)
+    });
+    downBtn.addEventListener('click', function() {
+      navigateTile('ver',1)
+    });
+
+    leftBtn.addEventListener('click', function() {
+      navigateTile('hoz',-1)
+    });
+    rightBtn.addEventListener('click', function() {
+      navigateTile('hoz',1)
     });
 
     window.addEventListener( 'resize', onWindowResize, false );
+
+    //check query string
+    checkQueries();
   }
 
-  function setLoadingBar(on) {
-    var loadingBar = document.getElementById('loading-bar');
-    if(on) loadingBar.style.display = "block";
-    else loadingBar.style.display = "none";
+  function checkQueries() {
+    var lon = getParameterByName('lon');
+    var lat = getParameterByName('lat');
+    if(lon !== null && lat !== null) {
+      fetchTheTile(buildQueryURL(lon,lat));
+      document.getElementById('lat').value = lat;
+      document.getElementById('lon').value = lon;
+    }
   }
 
-  function fetchTheTile(lon, lat) {
+  function navigateTile(direction, directionNum) {
+
+    if(direction === 'hoz') {
+      tileLon += directionNum;
+    } else {
+      tileLat += directionNum;
+    }
+    var callURL =  config.baseURL + '/' + config.dataKind + '/' + config.zoomLevel + '/' + tileLon + '/' + tileLat + '.' + config.fileFormat + '?api_key=' + config.vectorTileKey;
+
+    fetchTheTile(callURL);
+
+    var centerLon = tile2Lon(tileLon, config.zoomLevel);
+    var centerLat = tile2Lat(tileLat, config.zoomLevel);
+
+    updateQueryString({
+      'lon': centerLon,
+      'lat': centerLat
+    })
+
+    document.getElementById('lat').value = centerLat;
+    document.getElementById('lon').value = centerLon;
+
+  }
+
+  function buildQueryURL(lon, lat) {
+
+    var inputLon = parseFloat(lon);//-74.0059700;
+    var inputLat = parseFloat(lat);//40.7142700;
+
+    updateQueryString({
+      'lon': inputLon,
+      'lat': inputLat
+    });
+
+    //falttening geocode by converting them to mercator tile nums
+    tileLon = long2tile(inputLon, config.zoomLevel);
+    tileLat = lat2tile(inputLat , config.zoomLevel);
+
+    var callURL =  config.baseURL + '/' + config.dataKind + '/' + config.zoomLevel + '/' + tileLon + '/' + tileLat + '.' + config.fileFormat + '?api_key=' + config.vectorTileKey;
+    return callURL;
+  }
+
+  function fetchTheTile(callURL) {
 
     setLoadingBar(true);
 
@@ -94,11 +163,14 @@ var TileExporter = (function() {
     //get rid of current Tile from scene if there is any
     scene.remove(buildingGroup);
 
-    var lon = parseFloat(lon);//-74.0059700;
-    var lat = parseFloat(lat);//40.7142700;
+
+    //get lon/lat for mercator tile num
+    var centerLon = tile2Lon(tileLon, config.zoomLevel);
+    var centerLat = tile2Lat(tileLat, config.zoomLevel);
+
 
     var projection = d3.geo.mercator()
-      .center([lon, lat])
+      .center([centerLon, centerLat])
       .scale([6000000])
       .precision(.0);
 
@@ -107,11 +179,6 @@ var TileExporter = (function() {
 
     // converting d3 path(svg) to three shape
     //converting geocode to mercator tile nums
-    var requestLon = long2tile(lon,  16);
-    var requestLat = lat2tile(lat , 16);
-
-
-    var callURL =  config.baseURL + '/' + config.dataKind + '/' + config.zoomLevel + '/' + requestLon + '/' + requestLat + '.' + config.fileFormat + '?api_key=' + config.vectorTileKey;
 
     d3.json(callURL, function(err,json) {
       if(err) console.log('err!');
@@ -138,11 +205,13 @@ var TileExporter = (function() {
         obj.amounts = heights;
 
         buildingGroup = new THREE.Group();
+        buildingGroup.translateX(-window.innerWidth);
+        buildingGroup.translateY(-window.innerHeight/2);
         scene.add( buildingGroup );
         addGeoObject(obj);
       }
+      setLoadingBar(false);
     });
-    setLoadingBar(false);
   }
 
   function addGeoObject(svgObject) {
@@ -204,6 +273,33 @@ var TileExporter = (function() {
     return result;
   }
 
+
+  function updateQueryString(paramObj) {
+    var url = window.location.origin;
+    var newUrl = url + '?';
+    var params = [];
+    for(key in paramObj) {
+      params.push(encodeURIComponent(key) + "=" + encodeURIComponent(paramObj[key]));
+    }
+    newUrl += params.join("&");
+    window.history.replaceState({},'',newUrl);
+  }
+
+  function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    name = name.replace(/[\[\]]/g, "\\$&");
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+  }
+
+  function setLoadingBar(on) {
+    if(on) document.getElementById('loading-bar').style.display = 'block';
+    else document.getElementById('loading-bar').style.display = 'none';
+  }
+
   initScene();
   attachEvents();
 
@@ -219,12 +315,12 @@ function lat2tile(lat,zoom)  {
 }
 
 //shold check it will work
-function tile2long(tileLon, zoom) {
-  return (tile*360/Math.pow(2,zoom));
+function tile2Lon(tileLon, zoom) {
+  return (tileLon*360/Math.pow(2,zoom)-180);
 }
 
-function tile2lat(tileLat, zoom) {
-  return (360/Math.PI) * Math.atan(Math.pow( Math.E, (Math.PI - 2*Math.PI*tileLat/(Math.pow(2,zoom)))))-90
+function tile2Lat(tileLat, zoom) {
+  return ((360/Math.PI) * Math.atan(Math.pow( Math.E, (Math.PI - 2*Math.PI*tileLat/(Math.pow(2,zoom)))))-90);
 }
 
 //L = (360 / PI) * atan(e^(PI - 2 * PI * Y / (2 ^ Z))) - 90
