@@ -1,16 +1,17 @@
-  html,body{
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-  }
-  .control {
-    position: fixed;
-    top: 0;
-    left: 0;
-    padding: 20px;
-    background: #fff;
-  }
+html,body{
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.control {
+  position: fixed;
+  top: 0;
+  left: 0;
+  padding: 20px;
+  background: rgba(255,255,255,0.7);
+}
 
 
 .loading-bar {
@@ -26,35 +27,36 @@
 }
 
 .loading-bar::before {
-    content: ' ';
-    position: fixed;
-    top: calc(50% - 50px);
-    left: calc(50% - 50px) ;
-    width: 100px;
-    height: 100px;
-    z-index: 20030;
-    border-radius: 50%;
-    border: 15px solid #fff;
-    border-top-color: transparent;
-    color: #fff;
-    animation: spinning 1s infinite linear;
-    -webkit-animation: spinning 1s infinite linear;
-    -moz-animation: spinning 1s infinite linear;
+  content: ' ';
+  position: fixed;
+  top: calc(50% - 50px);
+  left: calc(50% - 50px) ;
+  width: 100px;
+  height: 100px;
+  z-index: 20030;
+  border-radius: 50%;
+  border: 15px solid #fff;
+  border-top-color: transparent;
+  color: #fff;
+  animation: spinning 1s infinite linear;
+  -webkit-animation: spinning 1s infinite linear;
+  -moz-animation: spinning 1s infinite linear;
 }
 
 .loading-bar::after {
-    content: 'Loading';
-    position: fixed;
-    color: #fff;
-    font-size: 12px;
-    top: calc(50% - 7px);
-    left: calc(50% - 18px);
+  content: 'Loading';
+  position: fixed;
+  color: #fff;
+  font-size: 12px;
+  top: calc(50% - 7px);
+  left: calc(50% - 18px);
 }
 
 a.disabled {
   color: #eee;
   pointer-event: none;
 }
+
 
 //loading spinner animation
 @keyframes spinning {
