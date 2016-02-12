@@ -275,7 +275,7 @@ var TileExporter = (function() {
 
 
   function updateQueryString(paramObj) {
-    var url = window.location.origin;
+    var url = window.location.origin + window.location.pathname;
     var newUrl = url + '?';
     var params = [];
     for(key in paramObj) {
