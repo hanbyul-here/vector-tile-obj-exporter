@@ -25,7 +25,7 @@ var TileExporter = (function() {
 
     /// Global : camera
     camera = new THREE.PerspectiveCamera( 20, window.innerWidth / window.innerHeight, 1, 1000000 );
-    camera.position.set(2000, 1000, 1300 );
+    camera.position.set(0, 0, 3000 );
     camera.lookAt(new THREE.Vector3(0,0,0))
 
 
@@ -153,6 +153,8 @@ var TileExporter = (function() {
     return callURL;
   }
 
+  var tileX, tileY, tileW, tileH;
+
   function fetchTheTile(callURL) {
 
     setLoadingBar(true);
@@ -169,13 +171,17 @@ var TileExporter = (function() {
     var centerLat = tile2Lat(tileLat, config.zoomLevel);
 
 
+    var previewProjection = d3.geo.mercator()
+      .center([centerLon, centerLat])
+      .scale([600000])
+      .precision(.0)
+      .translate([0,0])
+
     var projection = d3.geo.mercator()
       .center([centerLon, centerLat])
       .scale([6000000])
-      .precision(.0);
-
-
-    var path = d3.geo.path().projection(projection);
+      .precision(.0)
+      .translate([0,0])
 
     // converting d3 path(svg) to three shape
     //converting geocode to mercator tile nums
@@ -185,10 +191,28 @@ var TileExporter = (function() {
       else {
         for(obj in json) {
           for(j = 0; j< json[obj].features.length; j++) {
-            var geoFeature = json[obj].features[j];
-            var properties = geoFeature.properties;
-            var feature = path(geoFeature);
 
+            var geoFeature = json[obj].features[j];
+            var previewPath = d3.geo.path().projection(previewProjection);
+            var path = d3.geo.path().projection(projection);
+
+            if(obj === 'buildings') {
+              var b = path.bounds(geoFeature);
+                // s = .95 / Math.max((b[1][0] - b[0][0]) / window.innerWidth, (b[1][1] - b[0][1]) / window.innerHeight),
+                // t = [(window.innerWidth - s * (b[1][0] + b[0][0])) / 2, (window.innerHeight - s * (b[1][1] + b[0][1])) / 2];
+
+              tileX = b[0][0];
+              tileY = b[0][1];
+
+              tileW = b[1][0] - b[0][0];
+              tileH = b[1][1] - b[0][1];
+            }
+
+            //path = d3.geo.path().projection(projection);
+
+            var feature = path(geoFeature);
+            var previewFeature = previewPath(geoFeature);
+            PreviewMap.drawData(previewFeature);
             // 'a' command is not implemented in d3-three, skipiping for now.
             if(feature.indexOf('a') > 0) console.log('wooh there is dangerous command here');
             else {
@@ -205,8 +229,8 @@ var TileExporter = (function() {
         obj.amounts = heights;
 
         buildingGroup = new THREE.Group();
-        buildingGroup.translateX(-window.innerWidth);
-        buildingGroup.translateY(-window.innerHeight/2);
+        //buildingGroup.translateX(-window.innerWidth);
+        //buildingGroup.translateY(-window.innerHeight/2);
         scene.add( buildingGroup );
         addGeoObject(obj);
       }
@@ -247,7 +271,9 @@ var TileExporter = (function() {
         });
 
         var mesh = new THREE.Mesh(shape3d, material);
-        mesh.rotation.x = - Math.PI*1/2;
+        mesh.translateX (-(tileX+tileW));
+        mesh.translateY (-(tileY+tileH)/2);
+        //mesh.rotation.x = - Math.PI*1/2;
         buildingGroup.add(mesh);
       }
     }

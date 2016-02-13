@@ -85,6 +85,19 @@ button[id^="go"] {
   top: calc(10px + 41px*2); left: calc(26px + 42px);
 }
 
+#svg-preview-map {
+  background-color: #aaa;
+  position: absolute;
+  top: calc(10px + 41px); left: calc(25px + 42px);
+  width: 42px;
+  height: 42px;
+}
+
+.preview-path {
+  fill: none;
+  stroke: #000;
+}
+
 //loading spinner animation
 @keyframes spinning {
   0% { transform: rotate(0deg); }
