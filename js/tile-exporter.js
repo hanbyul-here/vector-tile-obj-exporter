@@ -107,19 +107,6 @@ var TileExporter = (function() {
       navigateTile('hoz',1)
     });
 
-    //for mobile ui
-    var mainControl = document.getElementById('main-control');
-    document.getElementById('hide-toggle').addEventListener('click', function() {
-      if(mainControl.style.display  !== 'none') {
-        mainControl.style.display = 'none';
-        this.innerHTML = 'Show control';
-      }
-      else {
-        mainControl.style.display = 'block';
-        this.innerHTML = 'Hide control';
-      }
-    });
-
     var zoomRad = document.zoomRadio.zoomLevel;
     var prev = null;
 
@@ -132,6 +119,20 @@ var TileExporter = (function() {
         }
       }
 
+    //for mobile ui, toggle main control
+    var mainControl = document.getElementById('main-control');
+    document.getElementById('hide-toggle').addEventListener('click', function() {
+      if(mainControl.style.display  !== 'none') {
+        mainControl.style.display = 'none';
+        this.innerHTML = 'Show control';
+      }
+      else {
+        mainControl.style.display = 'block';
+        this.innerHTML = 'Hide control';
+      }
+    });
+
+
     window.addEventListener( 'resize', onWindowResize, false );
 
     //check query string
@@ -143,7 +144,7 @@ var TileExporter = (function() {
     var lat = getParameterByName('lat');
     var zoom = getParameterByName('zoom');
     zoom = zoom.replace(/[^0-9]+/g, '');
-    console.log(zoom);
+
     if(lon !== null && lat !== null && zoom !== null) {
 
       document.getElementById('lat').value = lat;
@@ -438,4 +439,3 @@ function tile2Lat(tileLat, zoom) {
   return ((360/Math.PI) * Math.atan(Math.pow( Math.E, (Math.PI - 2*Math.PI*tileLat/(Math.pow(2,zoom)))))-90);
 }
 
-//L = (360 / PI) * atan(e^(PI - 2 * PI * Y / (2 ^ Z))) - 90
