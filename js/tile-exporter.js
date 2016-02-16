@@ -70,6 +70,7 @@ var TileExporter = (function() {
     renderer.render( scene, camera );
   }
 
+
   function onWindowResize() {
 
     w = window.innerWidth;
@@ -78,6 +79,7 @@ var TileExporter = (function() {
     camera.updateProjectionMatrix();
     renderer.setSize( w, h );
   }
+
 
   function attachEvents() {
     var exportBtn = document.getElementById('exportBtn');
@@ -139,6 +141,9 @@ var TileExporter = (function() {
     checkQueries();
   }
 
+
+
+
   function checkQueries() {
     var lon = getParameterByName('lon');
     var lat = getParameterByName('lat');
@@ -157,6 +162,8 @@ var TileExporter = (function() {
 
     }
   }
+
+
 
   function navigateTile(direction, directionNum) {
 
@@ -247,12 +254,18 @@ var TileExporter = (function() {
             var geoFeature = json[obj].features[j];
             var previewPath = d3.geo.path().projection(previewProjection);
             var path = d3.geo.path().projection(projection);
+
+            var defaultHeight = 15;
+
             if(obj === 'earth') {
               var b = path.bounds(geoFeature);
               tileX = b[0][0];
               tileY = b[0][1];
               tileW = b[1][0] - b[0][0];
               tileH = b[1][1] - b[0][1];
+              defaultHeight = 3;
+            } else if(obj === 'water') {
+              defaultHeight = 1;
             }
 
             //path = d3.geo.path().projection(projection);
@@ -266,7 +279,7 @@ var TileExporter = (function() {
             else {
               var mesh = transformSVGPathExposed(feature);
               buildings.push(mesh);
-              var h = geoFeature.properties["height"] || 1;
+              var h = geoFeature.properties['height'] || defaultHeight;
               heights.push(h);
             }
           }
@@ -274,7 +287,8 @@ var TileExporter = (function() {
 
         var obj = {};
         obj.paths = buildings;
-        obj.amounts = heights || 1;
+
+        obj.amounts = heights || defaultHeight;
         buildingGroup = new THREE.Group();
         //buildingGroup.rotation.x = Math.PI;
         buildingGroup.translateX(-(tileX+tileW)/2);
@@ -369,7 +383,7 @@ var TileExporter = (function() {
         reverseWindingOrder(object3D.children[j]);
       }
     }
-}
+  }
 
   function enableDownloadLink() {
 
