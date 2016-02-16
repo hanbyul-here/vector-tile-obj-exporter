@@ -141,10 +141,19 @@ var TileExporter = (function() {
   function checkQueries() {
     var lon = getParameterByName('lon');
     var lat = getParameterByName('lat');
-    if(lon !== null && lat !== null) {
-      fetchTheTile(buildQueryURL(lon,lat));
+    var zoom = getParameterByName('zoom');
+    zoom = zoom.replace(/[^0-9]+/g, '');
+    console.log(zoom);
+    if(lon !== null && lat !== null && zoom !== null) {
+
       document.getElementById('lat').value = lat;
       document.getElementById('lon').value = lon;
+
+      document.zoomRadio.zoomLevel.value = zoom;
+      config.zoomLevel = zoom;
+
+      fetchTheTile(buildQueryURL(lon,lat));
+
     }
   }
 
@@ -164,7 +173,8 @@ var TileExporter = (function() {
 
     updateQueryString({
       'lon': centerLon,
-      'lat': centerLat
+      'lat': centerLat,
+      'zoom': config.zoomLevel
     })
 
     document.getElementById('lat').value = centerLat;
@@ -179,7 +189,8 @@ var TileExporter = (function() {
 
     updateQueryString({
       'lon': inputLon,
-      'lat': inputLat
+      'lat': inputLat,
+      'zoom': config.zoomLevel
     });
 
     //falttening geocode by converting them to mercator tile nums
