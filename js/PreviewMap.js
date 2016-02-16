@@ -6,8 +6,8 @@ var PreviewMap = (function(_projection) {
 
   function init() {
 
-    width = 42;
-    height = 42;
+    width = 100;
+    height = 100;
 
     svg = d3.select('#svg-preview-map')
             .append('svg')

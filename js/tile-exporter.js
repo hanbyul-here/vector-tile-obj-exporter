@@ -106,6 +106,20 @@ var TileExporter = (function() {
     rightBtn.addEventListener('click', function() {
       navigateTile('hoz',1)
     });
+
+    //for mobile ui
+    var mainControl = document.getElementById('main-control');
+    document.getElementById('hide-toggle').addEventListener('click', function() {
+      if(mainControl.style.display  !== 'none') {
+        mainControl.style.display = 'none';
+        this.innerHTML = 'Show control';
+      }
+      else {
+        mainControl.style.display = 'block';
+        this.innerHTML = 'Hide control';
+      }
+    });
+
     var zoomRad = document.zoomRadio.zoomLevel;
     var prev = null;
 
@@ -197,7 +211,8 @@ var TileExporter = (function() {
 
     var previewProjection = d3.geo.mercator()
       .center([centerLon, centerLat])
-      .scale([600000])
+      //this are carved based on zoom 16
+      .scale(600000* 100/42 * Math.pow(2,(config.zoomLevel-16)))
       .precision(.0)
       .translate([0,0])
 

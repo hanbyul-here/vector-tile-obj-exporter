@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <link rel="stylesheet" href="https://mapzen.com/common/styleguide/styles/styleguide.css">
 <link rel="stylesheet" href="css/main.css">
 <body>
 
-    <div class="control">
+    <div id="main-control" class="control">
       <div class="row">
         <div class="col-sm-12">
           3D print your favorite map tile. Enter your coordinates to generate an OBJ file that you can send to a 3D printer!
@@ -38,7 +40,7 @@
       <div class="marginTopDown">
         <div class="row ">
           <div class="col-sm-12 text-center">
-            <button class="form-control btn btn-mapzen" id="exportBtn"> Get the tile</button>
+            <button class="form-control btn btn-mapzen" id="exportBtn"> Preview the tile</button>
           </div>
         </div>
       </div>
@@ -50,20 +52,27 @@
         </div>
       </div>
     </div>
+    <div class="control-toggle text-right">
+        <a id="hide-toggle">Hide control</a>
+    </div>
 
-      <div class="navigation">
-        <div class="row">
-          <div class="col-sm-12 text-center">
-            <div class="direction-control">
-              <button class="btn btn-transparent" id ="go-up"><i class="fa fa-arrow-up"></i></button>
-              <button class="btn btn-transparent" id ="go-left"><i class="fa fa-arrow-left"></i></button>
-              <button class="btn btn-transparent" id ="go-down"><i class="fa fa-arrow-down"></i></button>
-              <button class="btn btn-transparent" id ="go-right"><i class="fa fa-arrow-right"></i></button>
-              <div id ="svg-preview-map"></div>
-            </div>
+    <div class="navigation">
+      <div class="row">
+         <div class="col-sm-12 text-center">
+           <div class="direction-control">
+            <button class="btn btn-transparent" id ="go-up"><i class="fa fa-arrow-up"></i></button>
+            <button class="btn btn-transparent" id ="go-left"><i class="fa fa-arrow-left"></i></button>
+            <button class="btn btn-transparent" id ="go-down"><i class="fa fa-arrow-down"></i></button>
+            <button class="btn btn-transparent" id ="go-right"><i class="fa fa-arrow-right"></i></button>
+            <div id ="svg-preview-map"></div>
           </div>
         </div>
       </div>
+    </div>
+
+  <div class="cc">
+    © OSM contributors | <a href="https://mapzen.com">Mapzen</a> | <a href="https://github.com/hanbyul-here/vector-tile-obj-exporter">Github Repo</a>
+  </div>
 
 <div id="loading-bar" class="loading-bar"></div>
 
