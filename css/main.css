@@ -6,14 +6,17 @@ html,body{
 }
 
 .control {
+  width: 250px;
   position: fixed;
-  top: 0;
-  left: 0;
-  height: 100%;
+  left: 20px;
   padding: 20px;
   background: rgba(255,255,255,0.7);
+  font-size: 14px;
 }
 
+#exportA {
+  font-size: 18px;
+}
 
 .loading-bar {
   position: fixed;
@@ -52,12 +55,25 @@ html,body{
   left: calc(50% - 18px);
 }
 
-.downloadLink {
-  margin:20px 0;
+.marginTopDown {
+  margin: 10px 0;
 }
+
 a.disabled {
   color: #eee;
   pointer-event: none;
+}
+
+
+.navigation {
+  position: fixed;
+  right: 10px;
+  width: 160px;
+}
+@media only screen and (max-device-width: 480px) {
+  .navigation {
+    display: none;
+  }
 }
 
 .direction-control {
@@ -66,10 +82,12 @@ a.disabled {
   height: calc(42px*3 + 20px);
 }
 
+
 button[id^="go"] {
   position: absolute;
   width: 42px;
   height: 42px;
+  background-color: #fff;
 }
 
 #go-up {
@@ -86,11 +104,11 @@ button[id^="go"] {
 }
 
 #svg-preview-map {
-  background-color: #aaa;
+  background-color: #fff;
   position: absolute;
-  top: calc(10px + 41px); left: calc(25px + 42px);
-  width: 42px;
-  height: 42px;
+  top: calc(10px + 42px); left: calc(25px + 44px);
+  width: 40px;
+  height: 40px;
 }
 
 .preview-path {

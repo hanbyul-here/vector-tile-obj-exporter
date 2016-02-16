@@ -5,33 +5,43 @@ var TileExporter = (function() {
 
   var tileLon, tileLat;
 
+  var w,h;
+
+//mesh.applyMatrix(mS);
+//object.applyMatrix(mS);
+
+  var m = new THREE.Matrix4();
+
+
   var config = {
     baseURL: "http://vector.mapzen.com/osm",
     dataKind: "earth,water,buildings",
     vectorTileKey: "vector-tiles-xaDJOzg",
     fileFormat: "json",
-    zoomLevel: "16"
+    zoomLevel: 16
   }
 
   function initScene() {
 
+    w = window.innerWidth;
+    h = window.innerHeight;
     /// Global : renderer
     renderer = new THREE.WebGLRenderer( { antialias: true } );
     renderer.setClearColor( "0xb0b0b0" );
-    renderer.setSize( window.innerWidth, window.innerHeight );
+    renderer.setSize( w, h );
 
     /// Global : scene
     scene = new THREE.Scene();
 
     /// Global : camera
-    camera = new THREE.PerspectiveCamera( 20, window.innerWidth / window.innerHeight, 1, 1000000 );
-    camera.position.set(0, 0, 3000 );
+    camera = new THREE.PerspectiveCamera( 20, w/ h, 1, 1000000 );
+    camera.position.set(0, 0, 1000 );
     camera.lookAt(new THREE.Vector3(0,0,0))
 
 
     /// direct light
     var light = new THREE.DirectionalLight( 0xffffff );
-    light.position.set( 0.55, 0.8, 1.0 ).normalize();
+    light.position.set( 0.55, -0.8, -0.5 );
     scene.add( light );
 
     /// ambient light
@@ -62,9 +72,11 @@ var TileExporter = (function() {
 
   function onWindowResize() {
 
-    camera.aspect = window.innerWidth / window.innerHeight;
+    w = window.innerWidth;
+    h = window.innerHeight;
+    camera.aspect = w / h;
     camera.updateProjectionMatrix();
-    renderer.setSize( window.innerWidth, window.innerHeight );
+    renderer.setSize( w, h );
   }
 
   function attachEvents() {
@@ -94,6 +106,17 @@ var TileExporter = (function() {
     rightBtn.addEventListener('click', function() {
       navigateTile('hoz',1)
     });
+    var zoomRad = document.zoomRadio.zoomLevel;
+    var prev = null;
+
+    for(var i = 0; i < zoomRad.length; i++) {
+      zoomRad[i].onclick = function() {
+          if(this !== prev) {
+            prev = this;
+          }
+          config.zoomLevel = prev.value;
+        }
+      }
 
     window.addEventListener( 'resize', onWindowResize, false );
 
@@ -164,7 +187,8 @@ var TileExporter = (function() {
 
     //get rid of current Tile from scene if there is any
     scene.remove(buildingGroup);
-
+    //get rid of current preview
+    PreviewMap.destroy();
 
     //get lon/lat for mercator tile num
     var centerLon = tile2Lon(tileLon, config.zoomLevel);
@@ -179,9 +203,10 @@ var TileExporter = (function() {
 
     var projection = d3.geo.mercator()
       .center([centerLon, centerLat])
-      .scale([6000000])
+      .scale(1000000)
       .precision(.0)
       .translate([0,0])
+
 
     // converting d3 path(svg) to three shape
     //converting geocode to mercator tile nums
@@ -195,24 +220,20 @@ var TileExporter = (function() {
             var geoFeature = json[obj].features[j];
             var previewPath = d3.geo.path().projection(previewProjection);
             var path = d3.geo.path().projection(projection);
-
-            if(obj === 'buildings') {
+            if(obj === 'earth') {
               var b = path.bounds(geoFeature);
-                // s = .95 / Math.max((b[1][0] - b[0][0]) / window.innerWidth, (b[1][1] - b[0][1]) / window.innerHeight),
-                // t = [(window.innerWidth - s * (b[1][0] + b[0][0])) / 2, (window.innerHeight - s * (b[1][1] + b[0][1])) / 2];
-
               tileX = b[0][0];
               tileY = b[0][1];
-
               tileW = b[1][0] - b[0][0];
               tileH = b[1][1] - b[0][1];
             }
 
             //path = d3.geo.path().projection(projection);
-
             var feature = path(geoFeature);
             var previewFeature = previewPath(geoFeature);
-            PreviewMap.drawData(previewFeature);
+            if(feature.indexOf('a') > 0) console.log('wooh there is dangerous command here');
+            else PreviewMap.drawData(previewFeature);
+
             // 'a' command is not implemented in d3-three, skipiping for now.
             if(feature.indexOf('a') > 0) console.log('wooh there is dangerous command here');
             else {
@@ -226,11 +247,15 @@ var TileExporter = (function() {
 
         var obj = {};
         obj.paths = buildings;
-        obj.amounts = heights;
-
+        obj.amounts = heights || 1;
         buildingGroup = new THREE.Group();
-        //buildingGroup.translateX(-window.innerWidth);
-        //buildingGroup.translateY(-window.innerHeight/2);
+        //buildingGroup.rotation.x = Math.PI;
+        buildingGroup.translateX(-(tileX+tileW)/2);
+        buildingGroup.translateY(-(tileY+tileH)/2);
+
+
+        //buildingGroup.applyMatrix(mS);
+        //buildingGroup.scale(-1,1,1);
         scene.add( buildingGroup );
         addGeoObject(obj);
       }
@@ -254,32 +279,77 @@ var TileExporter = (function() {
       emissive: color,
     });
 
-    var i,j;
+    var i,j,k;
 
     for (i = 0; i < thePaths.length; i++) {
       amount = theAmounts[i];
-      simpleShapes = thePaths[i];//path.toShapes(true);
+      simpleShapes = thePaths[i];
       len1 = simpleShapes.length;
 
       //adding all the buildings to the group!
       for (j = 0; j < len1; ++j) {
 
         simpleShape = simpleShapes[j];
+
         shape3d = simpleShape.extrude({
-          amount: amount,
+          amount: amount/ 6,
           bevelEnabled: false
         });
-
+        // console.log('before')
+        // console.log(shape3d.vertices);
+        for(k = 0; k< shape3d.vertices.length; k++) {
+          var v = shape3d.vertices[k];
+          v.setY(-v.y);
+        }
+        //shape3d.translateY();
         var mesh = new THREE.Mesh(shape3d, material);
-        mesh.translateX (-(tileX+tileW));
-        mesh.translateY (-(tileY+tileH)/2);
-        //mesh.rotation.x = - Math.PI*1/2;
+        reverseWindingOrder(mesh);
+        //mesh.translateX (-tileW/2);
+        //mesh.translateZ(30-(amount/6));
         buildingGroup.add(mesh);
+
       }
     }
     enableDownloadLink();
   }
 
+function reverseWindingOrder(object3D) {
+
+    // TODO: Something is missing, the objects are flipped alright but the light reflection on them is somehow broken
+
+    if (object3D.type === "Mesh") {
+
+        var geometry = object3D.geometry;
+
+        for (var i = 0, l = geometry.faces.length; i < l; i++) {
+
+            var face = geometry.faces[i];
+            var temp = face.a;
+            face.a = face.c;
+            face.c = temp;
+
+        }
+
+        var faceVertexUvs = geometry.faceVertexUvs[0];
+        for (i = 0, l = faceVertexUvs.length; i < l; i++) {
+
+            var vector2 = faceVertexUvs[i][0];
+            faceVertexUvs[i][0] = faceVertexUvs[i][2];
+            faceVertexUvs[i][2] = vector2;
+        }
+
+        geometry.computeFaceNormals();
+        geometry.computeVertexNormals();
+    }
+
+    if (object3D.children) {
+
+        for (var j = 0, jl = object3D.children.length; j < jl; j++) {
+
+            reverseWindingOrder(object3D.children[j]);
+        }
+    }
+}
 
   function enableDownloadLink() {
 
