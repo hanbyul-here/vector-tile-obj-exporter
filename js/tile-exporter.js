@@ -41,7 +41,7 @@ var TileExporter = (function() {
 
     /// direct light
     var light = new THREE.DirectionalLight( 0xffffff );
-    light.position.set( 0.55, -0.8, -0.5 );
+    light.position.set( 1, 1, 1 );
     scene.add( light );
 
     /// ambient light
@@ -251,11 +251,8 @@ var TileExporter = (function() {
         buildingGroup = new THREE.Group();
         //buildingGroup.rotation.x = Math.PI;
         buildingGroup.translateX(-(tileX+tileW)/2);
-        buildingGroup.translateY(-(tileY+tileH)/2);
+        buildingGroup.translateY((tileY+tileH)/2);
 
-
-        //buildingGroup.applyMatrix(mS);
-        //buildingGroup.scale(-1,1,1);
         scene.add( buildingGroup );
         addGeoObject(obj);
       }
@@ -277,6 +274,7 @@ var TileExporter = (function() {
       color: color,
       ambient: color,
       emissive: color,
+      shading: THREE.FlatShading
     });
 
     var i,j,k;
@@ -295,59 +293,54 @@ var TileExporter = (function() {
           amount: amount/ 6,
           bevelEnabled: false
         });
-        // console.log('before')
-        // console.log(shape3d.vertices);
+
         for(k = 0; k< shape3d.vertices.length; k++) {
-          var v = shape3d.vertices[k];
-          v.setY(-v.y);
+           var v = shape3d.vertices[k];
+           v.setY(-v.y);
         }
-        //shape3d.translateY();
+
         var mesh = new THREE.Mesh(shape3d, material);
         reverseWindingOrder(mesh);
-        //mesh.translateX (-tileW/2);
-        //mesh.translateZ(30-(amount/6));
         buildingGroup.add(mesh);
-
       }
     }
     enableDownloadLink();
   }
 
-function reverseWindingOrder(object3D) {
-
-    // TODO: Something is missing, the objects are flipped alright but the light reflection on them is somehow broken
+  function reverseWindingOrder(object3D) {
+    // This function is written by Immugio at Stack Overflow
+    // http://stackoverflow.com/questions/28630097/flip-mirror-any-object-with-three-js
+    // it had TODO: Something is missing, the objects are flipped alright but the light reflection on them is somehow broken
+    // this application ignored light reflection using flat shade material
 
     if (object3D.type === "Mesh") {
 
-        var geometry = object3D.geometry;
+      var geometry = object3D.geometry;
 
-        for (var i = 0, l = geometry.faces.length; i < l; i++) {
+      for (var i = 0, l = geometry.faces.length; i < l; i++) {
+          var face = geometry.faces[i];
+          var temp = face.a;
+          face.a = face.c;
+          face.c = temp;
+      }
 
-            var face = geometry.faces[i];
-            var temp = face.a;
-            face.a = face.c;
-            face.c = temp;
+      var faceVertexUvs = geometry.faceVertexUvs[0];
 
-        }
+      for (i = 0, l = faceVertexUvs.length; i < l; i++) {
 
-        var faceVertexUvs = geometry.faceVertexUvs[0];
-        for (i = 0, l = faceVertexUvs.length; i < l; i++) {
+        var vector2 = faceVertexUvs[i][0];
+        faceVertexUvs[i][0] = faceVertexUvs[i][2];
+        faceVertexUvs[i][2] = vector2;
+      }
 
-            var vector2 = faceVertexUvs[i][0];
-            faceVertexUvs[i][0] = faceVertexUvs[i][2];
-            faceVertexUvs[i][2] = vector2;
-        }
-
-        geometry.computeFaceNormals();
-        geometry.computeVertexNormals();
+      geometry.computeFaceNormals();
+      geometry.computeVertexNormals();
     }
 
     if (object3D.children) {
-
-        for (var j = 0, jl = object3D.children.length; j < jl; j++) {
-
-            reverseWindingOrder(object3D.children[j]);
-        }
+      for (var j = 0, jl = object3D.children.length; j < jl; j++) {
+        reverseWindingOrder(object3D.children[j]);
+      }
     }
 }
 
