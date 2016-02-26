@@ -130,7 +130,7 @@ button[id^="go"] {
 }
 
 #svg-preview-map {
-  background-color: #fff;
+  background-color: transparent;
   position: absolute;
   top: 50px; left: 50px;
   width: 100px;
@@ -138,7 +138,7 @@ button[id^="go"] {
 }
 
 .preview-path {
-  fill: none;
+  fill: #fff;
   stroke: #000;
 }
 
