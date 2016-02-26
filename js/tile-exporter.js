@@ -7,11 +7,7 @@ var TileExporter = (function() {
 
   var w,h;
 
-//mesh.applyMatrix(mS);
-//object.applyMatrix(mS);
-
-  var m = new THREE.Matrix4();
-
+  var d3D = new d3threeD();
 
   var config = {
     baseURL: "http://vector.mapzen.com/osm",
@@ -266,6 +262,8 @@ var TileExporter = (function() {
               defaultHeight = 3;
             } else if(obj === 'water') {
               defaultHeight = 1;
+            } else if(obj === 'landuse') {
+              defaultHeight = 6;
             }
 
             //path = d3.geo.path().projection(projection);
@@ -277,7 +275,7 @@ var TileExporter = (function() {
             // 'a' command is not implemented in d3-three, skipiping for now.
             if(feature.indexOf('a') > 0) console.log('wooh there is dangerous command here');
             else {
-              var mesh = transformSVGPathExposed(feature);
+              var mesh = d3D.exportSVG(feature);
               buildings.push(mesh);
               var h = geoFeature.properties['height'] || defaultHeight;
               heights.push(h);

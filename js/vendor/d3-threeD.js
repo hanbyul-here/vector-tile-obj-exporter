@@ -1,8 +1,9 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
- * You can obtain one at http://mozilla.org/MPL/2.0/. */
+ * You can obtain one at http://mozilla.org/MPL/2.0/.
 
-var transformSVGPathExposed;
+ This is originally written by  asutherland, https://github.com/asutherland/d3-threeD
+ edited by Hanbyul Jo for tile exporter https://github.com/hanbyul-here/vector-tile-obj-exporter*/
 
 function d3threeD(exports) {
 
@@ -11,8 +12,6 @@ function d3threeD(exports) {
 
     const DIGIT_0 = 48, DIGIT_9 = 57, COMMA = 44, SPACE = 32, PERIOD = 46,
         MINUS = 45;
-
-
 
     function transformSVGPath(pathStr) {
 
@@ -273,10 +272,7 @@ function d3threeD(exports) {
         }
     }
 
-    transformSVGPathExposed = transformSVGPath;
-
     function applySVGTransform(obj, tstr) {
-
 
         var idx = tstr.indexOf('('), len = tstr.length,
             cmd = tstr.substring(0, idx++);
@@ -685,6 +681,9 @@ function d3threeD(exports) {
         return this.selectAll(select3d_selector(constraint));
     };
 
+    return {
+        exportSVG: transformSVGPath
+    }
 
 }
 
