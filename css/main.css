@@ -148,6 +148,7 @@ button[id^="go"] {
   right: 0;
   padding: 5px;
 }
+
 @media only screen and (max-device-width: 480px) {
   .cc {
     font-size: 11px;
