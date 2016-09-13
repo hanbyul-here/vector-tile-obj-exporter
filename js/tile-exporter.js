@@ -277,7 +277,7 @@ var TileExporter = (function() {
               // 'a' command is not implemented in d3-three, skipiping for now.
               if(feature.indexOf('a') > 0) ;
               else {
-                var mesh = dthreed.exportSVG(feature);
+                var mesh = d3D.exportSVG(feature);
                 buildings.push(mesh);
                 var h = (geoFeature.properties['height']+10) || defaultHeight;
                 heights.push(h);
