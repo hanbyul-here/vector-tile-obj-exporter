@@ -391,7 +391,7 @@ var TileExporter = (function() {
     var buildingObj = exportToObj()
     var exportA = document.getElementById('exportA');
     exportA.className = "";
-    exportA.download = 'tile-'+tileLon +'-'+tileLat+'-z'+zoom+'.obj';
+    exportA.download = 'tile-'+tileLon +'-'+tileLat+'-z'+config.zoomLevel+'.obj';
 
 
     var blob = new Blob([buildingObj], {type: 'text'});
