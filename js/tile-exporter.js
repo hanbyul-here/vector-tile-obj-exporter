@@ -266,19 +266,22 @@ var TileExporter = (function() {
               defaultHeight = 25;
             }
 
+
             //path = d3.geo.path().projection(projection);
             var feature = path(geoFeature);
             var previewFeature = previewPath(geoFeature);
-            if(feature.indexOf('a') > 0) console.log('wooh there is dangerous command here');
-            else PreviewMap.drawData(previewFeature);
 
-            // 'a' command is not implemented in d3-three, skipiping for now.
-            if(feature.indexOf('a') > 0) console.log('wooh there is dangerous command here');
-            else {
-              var mesh = d3D.exportSVG(feature);
-              buildings.push(mesh);
-              var h = geoFeature.properties['height+20'] || defaultHeight;
-              heights.push(h);
+            if(feature !== undefined) {
+              if(previewFeature.indexOf('a') > 0) ;
+
+              // 'a' command is not implemented in d3-three, skipiping for now.
+              if(feature.indexOf('a') > 0) ;
+              else {
+                var mesh = dthreed.exportSVG(feature);
+                buildings.push(mesh);
+                var h = (geoFeature.properties['height']+10) || defaultHeight;
+                heights.push(h);
+              }
             }
           }
         }
@@ -300,23 +303,19 @@ var TileExporter = (function() {
   }
 
   function addGeoObject(svgObject) {
-
     var path, material, amount, simpleShapes, simpleShape, shape3d, toAdd, results = [];
 
     var thePaths = svgObject.paths;
     var theAmounts = svgObject.amounts;
 
-
     var color = new THREE.Color("#5c5c5c");
 
+    // This is normal material for exporter
     material = new THREE.MeshLambertMaterial({
-      color: color,
-      ambient: color,
-      emissive: color,
-      shading: THREE.FlatShading
+      color: color
     });
 
-    var i,j,k;
+    var i,j,k,len1;
 
     for (i = 0; i < thePaths.length; i++) {
       amount = theAmounts[i];
@@ -327,20 +326,24 @@ var TileExporter = (function() {
       for (j = 0; j < len1; ++j) {
 
         simpleShape = simpleShapes[j];
+        try {
+          shape3d = simpleShape.extrude({
+            amount: amount/ 6,
+            bevelEnabled: false
+          });
 
-        shape3d = simpleShape.extrude({
-          amount: amount/ 6,
-          bevelEnabled: false
-        });
+          for(k = 0; k< shape3d.vertices.length; k++) {
+             var v = shape3d.vertices[k];
+             v.setY(-v.y);
+          }
 
-        for(k = 0; k< shape3d.vertices.length; k++) {
-           var v = shape3d.vertices[k];
-           v.setY(-v.y);
+          var mesh = new THREE.Mesh(shape3d, material);
+          reverseWindingOrder(mesh);
+          buildingGroup.add(mesh);
+        } catch(e) {
+          console.log('it could not exturde geometry, it can be because of duplicated point of svg.');
         }
 
-        var mesh = new THREE.Mesh(shape3d, material);
-        reverseWindingOrder(mesh);
-        buildingGroup.add(mesh);
       }
     }
     enableDownloadLink();
@@ -373,7 +376,7 @@ var TileExporter = (function() {
       }
 
       geometry.computeFaceNormals();
-      geometry.computeVertexNormals();
+      //geometry.computeVertexNormals();
     }
 
     if (object3D.children) {
