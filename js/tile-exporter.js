@@ -10,7 +10,7 @@ var TileExporter = (function() {
   var d3D = new d3threeD();
 
   var config = {
-    baseURL: "http://vector.mapzen.com/osm",
+    baseURL: "https://vector.mapzen.com/osm",
     dataKind: "earth,water,buildings",
     vectorTileKey: "vector-tiles-xaDJOzg",
     fileFormat: "json",
